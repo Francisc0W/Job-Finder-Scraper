@@ -3,7 +3,7 @@ name: Daily Job Scraper
 on:
   schedule:
     # Se ejecuta todos los días a las 08:00 AM UTC (que serían las 04:00 AM en Chile aprox / 05:00 AM dependiendo del horario de verano)
-    - cron: '0 8 * * *'
+    - cron: '0 09 * * *'
   # Permite ejecutar el bot manualmente desde GitHub
   workflow_dispatch:
 
