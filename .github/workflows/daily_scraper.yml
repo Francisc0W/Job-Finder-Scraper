@@ -1,0 +1,37 @@
+name: Daily Job Scraper
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 08:00 AM UTC (que serían las 04:00 AM en Chile aprox / 05:00 AM dependiendo del horario de verano)
+    - cron: '0 8 * * *'
+  # Permite ejecutar el bot manualmente desde GitHub
+  workflow_dispatch:
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Cargar el repositorio
+      uses: actions/checkout@v4
+
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12' 
+
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        python -m playwright install --with-deps chromium
+
+    - name: Ejecutar el bot de scraping
+      run: python main_bot.py
+
+    - name: Subir el reporte diario como artefacto (Descargable)
+      uses: actions/upload-artifact@v4
+      with:
+        name: reporte-empleos-diario
+        path: reportes_diarios/*.csv
+        retention-days: 7
