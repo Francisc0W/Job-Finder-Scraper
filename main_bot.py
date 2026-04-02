@@ -1,6 +1,7 @@
 import asyncio
 import os
 import argparse
+import csv
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -23,11 +24,6 @@ async def main():
     # Asegurar que exista el directorio de reportes
     os.makedirs("reportes_diarios", exist_ok=True)
     report_file = f"reportes_diarios/reporte_{datetime.now().strftime('%Y-%m-%d')}.csv"
-
-    # Si no existe, crear el archivo con encabezados
-    if not os.path.exists(report_file):
-        with open(report_file, "w", encoding="utf-8") as f:
-            f.write("Plataforma,Titulo,Empresa,Link,Estado\n")
 
     # Cargar enlaces ya vistos para no repetir
     seen_links = set()
@@ -61,36 +57,66 @@ async def main():
         "seen_links": seen_links
     }
 
+    resultados_totales = []
+
     if args.platform in ["all", "getonboard"]:
         print("\n--- Ejecutando Scraper de GetOnBoard ---")
-        await run_getonboard(params)
+        res = await run_getonboard(params)
+        if res: resultados_totales.extend(res)
         
     if args.platform in ["all", "linkedin"]:
         print("\n--- Ejecutando Scraper de LinkedIn ---")
-        await run_linkedin(params)
+        res = await run_linkedin(params)
+        if res: resultados_totales.extend(res)
         
     if args.platform in ["all", "computrabajo"]:
         print("\n--- Ejecutando Scraper de Computrabajo ---")
-        await run_computrabajo(params)
+        res = await run_computrabajo(params)
+        if res: resultados_totales.extend(res)
         
     if args.platform in ["all", "laborum"]:
         print("\n--- Ejecutando Scraper de Laborum ---")
-        await run_laborum(params)
+        res = await run_laborum(params)
+        if res: resultados_totales.extend(res)
         
     if args.platform in ["all", "trabajando"]:
         print("\n--- Ejecutando Scraper de Trabajando.com ---")
-        await run_trabajando(params)
+        res = await run_trabajando(params)
+        if res: resultados_totales.extend(res)
         
     if args.platform in ["all", "bne"]:
         print("\n--- Ejecutando Scraper de BNE (Bolsa Nacional de Empleo) ---")
-        await run_bne(params)
+        res = await run_bne(params)
+        if res: resultados_totales.extend(res)
         
     if args.platform in ["all", "glassdoor"]:
         print("\n--- Ejecutando Scraper de Glassdoor ---")
-        await run_glassdoor(params)
+        res = await run_glassdoor(params)
+        if res: resultados_totales.extend(res)
     
     print("\n==================================================")
-    print("Ejecución finalizada. Reporte guardado en:")
+    print("Guardando resultados en CSV...")
+    
+    if resultados_totales:
+        file_exists = os.path.exists(report_file)
+        with open(report_file, "a", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(["Plataforma", "Titulo", "Empresa", "Link", "Estado"])
+                
+            for res in resultados_totales:
+                writer.writerow([
+                    res.get("plataforma", ""),
+                    res.get("titulo", ""),
+                    res.get("empresa", ""),
+                    res.get("link", ""),
+                    res.get("estado", "")
+                ])
+        print(f"-> {len(resultados_totales)} empleos nuevos guardados en total.")
+    else:
+        print("-> No se encontraron empleos nuevos u ofertas no vistas.")
+
+    print(f"Ejecución finalizada. Reporte guardado en:")
     print(os.path.abspath(report_file))
     print("==================================================")
 

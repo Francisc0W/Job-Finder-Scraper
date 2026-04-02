@@ -1,6 +1,7 @@
 import os
 import asyncio
 from playwright.async_api import async_playwright
+from utils import es_valido_para_junior
 
 async def run_computrabajo(params):
     perfiles = params.get("perfiles", [])
@@ -58,9 +59,7 @@ async def run_computrabajo(params):
                         # Filtro estricto para Junior / Trainee
                         titulo_chk = titulo.lower()
                         # Filtro estricto Junior (Excluye niveles Mid/Senior)
-                        import re
-                        excluir = [r"\bsenior\b", r"\bssr\b", r"semi-senior", r"semi senior", r"\bsr\.?\b", r"\blead\b", r"\bjefe\b", r"\bmanager\b", r"principal", r"arquitecto", r"experto", r"specialist", r"especialista", r"coordinador", r"supervisor", r"líder", r"lider", r"director", r"\bhead\b", r"\bvp\b", r"gerente", r"middle", r"mid-level", r"mid level", r"\bmid\b", r"experiencia", r"experienced"]
-                        if any(re.search(p, titulo_chk) for p in excluir):
+                        if not es_valido_para_junior(titulo):
                             continue
                             
                         if link in seen_links:
@@ -83,11 +82,4 @@ async def run_computrabajo(params):
         finally:
             await browser.close()
             
-        # Guardar en reporte
-        if resultados:
-            with open(report_file, "a", encoding="utf-8") as f:
-                for res in resultados:
-                    tit = res['titulo'].replace('"', "'").replace(',', ' ')
-                    emp = res['empresa'].replace('"', "'").replace(',', ' ')
-                    f.write(f"{res['plataforma']},{tit},{emp},{res['link']},{res['estado']}\n")
-            print(f"-> {len(resultados)} empleos de Computrabajo encontrados y guardados.")
+        return resultados

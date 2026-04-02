@@ -35,3 +35,9 @@ jobs:
         name: reporte-empleos-diario
         path: reportes_diarios/*.csv
         retention-days: 7
+
+    - name: Push reporte de empleos al repositorio
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "chore: actualizar reporte diario de empleos"
+        file_pattern: "reportes_diarios/*.csv"
